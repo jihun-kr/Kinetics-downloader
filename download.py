@@ -11,6 +11,8 @@ from joblib import delayed
 from joblib import Parallel
 import pandas as pd
 
+import time
+
 
 def create_video_folders(dataset, output_dir, tmp_dir):
     """Creates a directory for each label name in the dataset."""
@@ -52,7 +54,7 @@ def construct_video_filename(row, label_to_dir, trim_format='%06d'):
 def download_clip(video_identifier, output_filename,
                   start_time, end_time,
                   tmp_dir='/tmp/kinetics',
-                  num_attempts=5,
+                  num_attempts=1,
                   url_base='https://www.youtube.com/watch?v='):
     """Download a video from youtube if exists and is not blocked.
 
@@ -78,7 +80,7 @@ def download_clip(video_identifier, output_filename,
     tmp_filename = os.path.join(tmp_dir,
                                 '%s.%%(ext)s' % uuid.uuid4())
     command = ['youtube-dl',
-               '--quiet', '--no-warnings',
+               '--quiet',
                '-f', 'mp4',
                '-o', '"%s"' % tmp_filename,
                '"%s"' % (url_base + video_identifier)]
@@ -89,6 +91,7 @@ def download_clip(video_identifier, output_filename,
             output = subprocess.check_output(command, shell=True,
                                              stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
+            time.sleep(3)       # To avoid 403 error
             attempts += 1
             if attempts == num_attempts:
                 print('youtube-dl failed: ' + err.output)
@@ -117,6 +120,7 @@ def download_clip(video_identifier, output_filename,
     # Check if the video was successfully saved.
     status = os.path.exists(output_filename)
     os.remove(tmp_filename)
+    print('Download success: ' + output_filename)
     return status, 'Downloaded'
 
 

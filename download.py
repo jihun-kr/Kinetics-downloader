@@ -54,7 +54,7 @@ def construct_video_filename(row, label_to_dir, trim_format='%06d'):
 def download_clip(video_identifier, output_filename,
                   start_time, end_time,
                   tmp_dir='/tmp/kinetics',
-                  num_attempts=1,
+                  num_attempts=3,
                   url_base='https://www.youtube.com/watch?v='):
     """Download a video from youtube if exists and is not blocked.
 
@@ -91,10 +91,15 @@ def download_clip(video_identifier, output_filename,
             output = subprocess.check_output(command, shell=True,
                                              stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
-            time.sleep(3)       # To avoid 403 error
+            time.sleep(3)   # 403 error avoidance
             attempts += 1
             if attempts == num_attempts:
-                print('youtube-dl failed: ' + err.output)
+                print('youtube-dl failed: {}\n'.format(command) +
+                      'Creating empty file: {}\n'.format(output_filename) +
+                      err.output)
+                subprocess.check_output('touch {}'.format(output_filename),
+                                        shell=True,
+                                        stderr=subprocess.STDOUT)
                 return status, err.output
         else:
             break

@@ -91,6 +91,7 @@ def download_clip(video_identifier, output_filename,
         except subprocess.CalledProcessError as err:
             attempts += 1
             if attempts == num_attempts:
+                print('youtube-dl failed: ' + err.output)
                 return status, err.output
         else:
             break
@@ -110,6 +111,7 @@ def download_clip(video_identifier, output_filename,
         output = subprocess.check_output(command, shell=True,
                                          stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as err:
+        print('ffmpeg failed: ' + err.output)
         return status, err.output
 
     # Check if the video was successfully saved.

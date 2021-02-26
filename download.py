@@ -12,6 +12,7 @@ from joblib import Parallel
 import pandas as pd
 
 import time
+import random
 
 
 def create_video_folders(dataset, output_dir, tmp_dir):
@@ -91,7 +92,10 @@ def download_clip(video_identifier, output_filename,
             output = subprocess.check_output(command, shell=True,
                                              stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
-            time.sleep(3)   # 403 error avoidance
+            if err.output.find('HTTP Error 429') != -1:
+                raise RuntimeError()
+
+            time.sleep(random.random() * 5)   # 429 error avoidance
             attempts += 1
             if attempts == num_attempts:
                 print('youtube-dl failed: {}\n'.format(command) +
@@ -125,7 +129,7 @@ def download_clip(video_identifier, output_filename,
     # Check if the video was successfully saved.
     status = os.path.exists(output_filename)
     os.remove(tmp_filename)
-    print('Download success: ' + output_filename)
+    print('Download success: {}\n'.format(output_filename))
     return status, 'Downloaded'
 
 

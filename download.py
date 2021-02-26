@@ -101,7 +101,7 @@ def download_clip(video_identifier, output_filename,
                 print('youtube-dl failed: {}\n'.format(command) +
                       'Creating empty file: {}\n'.format(output_filename) +
                       err.output)
-                subprocess.check_output('touch {}'.format(output_filename),
+                subprocess.check_output("touch '{}'".format(output_filename),
                                         shell=True,
                                         stderr=subprocess.STDOUT)
                 return status, err.output
